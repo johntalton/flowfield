@@ -19,7 +19,7 @@
 
 	canvas {
 		margin-block-start: 1em;
-		max-width: 800px;
+		max-width: min(100%, 1600px);
 		flex-grow: 1;
 		aspect-ratio: 16 / 9;
 		/* border: 1px solid pink; */
