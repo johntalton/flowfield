@@ -43,7 +43,7 @@ function setup() {
 		colorSpace: 'display-p3'
 	})
 
-	context.imageSmoothingEnabled = true
+	context.imageSmoothingEnabled = false
 
 	context.fillStyle = 'black'
 	context.fillRect(0, 0, canvas.width, canvas.height)
@@ -62,13 +62,16 @@ function setup() {
 function render(config, time) {
 	const { context, flowPoints, sand } = config
 
-	context.fillStyle = 'rgba(0, 0, 0, 0.025)'
-	// context.lineWidth = .5
+	// if(Math.floor(time / 1000) % 2 === 0) {
+		// console.log(time, Math.floor(time / 1000))
+		context.fillStyle = 'rgba(0, 0, 20, 0.0125)'
+		context.fillRect(0, 0, config.width, config.height)
+		// context.fillStyle = `rgb(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255})`
+	// }
 
-	// context.fillRect(0, 0, config.width, config.height)
+	context.lineWidth = 1
 
-
-	context.strokeStyle = 'red'
+	context.strokeStyle = 'rgb(100, 0, 100, 0.05)'
 	flowPoints.forEach(({ x, y, angle, intensity }) => {
 		context.save()
 		context.beginPath()
@@ -78,14 +81,16 @@ function render(config, time) {
 		context.lineTo(intensity * 100, 0)
 		context.stroke()
 		context.resetTransform()
-
 		context.restore()
 	})
 
 
-	context.fillStyle = 'white'
+	context.fillStyle = 'pink'
+	// const v = Math.random() * 255
+	// context.fillStyle = `rgb(${v}, ${v}, ${v})`
 	// console.log('sand', time)
 	sand.forEach(({ x, y }) => {
+		context.fillRect(x - 1, y - 1, 2, 2)
 		context.fillRect(x, y, 1, 1)
 	})
 
@@ -104,11 +109,22 @@ function render(config, time) {
 
 		return { x, y }
 	})
+
+	const a = ((Math.random() * 2 - 1) * 15 * Math.PI / 180)
+	config.flowPoints = flowPoints.map(fp => {
+		return {
+			...fp,
+			angle: fp.angle + a
+		}
+	})
 }
 
 function makeRenderOverConfig(config) {
 	const proxyRender = (time) => {
+
 		render(config, time)
+
+		// if(time > 30 * 1000) { console.log('render paused after time'); return }
 		requestAnimationFrame(proxyRender)
 	}
 	return proxyRender
