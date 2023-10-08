@@ -125,7 +125,7 @@ function render(config, time) {
 			context.translate(x, y);
 			context.rotate(angle);
 			context.moveTo(0, 0)
-			context.lineTo(intensity * 50, 0)
+			context.lineTo(intensity * 150, 0)
 			context.stroke()
 			context.resetTransform()
 			context.restore()
@@ -134,7 +134,7 @@ function render(config, time) {
 
 	//
 	sand.forEach(({ x, y, age }) => {
-		context.fillStyle = age > 15 ? 'purple' : 'pink'
+		context.fillStyle = age > 15 ? 'pink' : 'red'
 		context.fillRect(x, y, 1, 1)
 	})
 
@@ -148,9 +148,11 @@ function render(config, time) {
 
 		const vec = vectorFrom(closest.angle)
 		const nextVec = vectorFrom(next.angle)
+		const nextD = distance(next, p)
+		const scale = distance(closest, p) / nextD
 		const nextVecScaled = {
-			x: nextVec.x / 2,
-			y: nextVec.y / 2
+			x: nextVec.x * scale,
+			y: nextVec.y * scale
 		}
 
 		const x = Math.max(10, Math.min(p.x + vec.x + nextVecScaled.x, config.width - 10))
@@ -177,7 +179,7 @@ function render(config, time) {
 	})
 
 	//
-	const a = (Math.random() * 2 - 1) * 2 * Math.PI / 180
+	const a = (Math.random() * 2 - 1) * 0.5 * Math.PI / 180
 	config.flowPoints = flowPoints.map(fp => {
 		const b = (Math.random() * 2 - 1) * 2 * Math.PI / 180
 		return {
