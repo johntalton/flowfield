@@ -12,8 +12,8 @@ function vectorFrom(angle) {
 
 function createFlowPoints(w, h) {
 	// return createFlowPoints_Fixed(w, h)
-	// return createFlowPoints_Random(w, h)
-	return createFlowPoints_Wave(w, h)
+	return createFlowPoints_Random(w, h)
+	// return createFlowPoints_Wave(w, h)
 }
 
 function createFlowPoints_Fixed(w, h) {
@@ -21,7 +21,7 @@ function createFlowPoints_Fixed(w, h) {
 		{ x: .1, y: .1, angle: 10 * Math.PI / 180, intensity: 0.5 },
 		{ x: .5, y: .5, angle: 150 * Math.PI / 180, intensity: 0.5 },
 		{ x: .3, y: .9, angle: 300 * Math.PI / 180, intensity: 0.5 },
-		// { x: .75, y: .8, angle: 270 * Math.PI / 180, intensity: 0.5 }
+		{ x: .75, y: .8, angle: 270 * Math.PI / 180, intensity: 0.5 }
 	].map(fp => {
 		return {
 			...fp,
@@ -43,11 +43,10 @@ function createFlowPoints_Random(w, h) {
 }
 
 function createFlowPoints_Wave(w, h) {
-	const hd = 7
-	const wd = 17
+	const hd = 20
+	const wd = 40
 
 	return Array.from({ length: wd * hd }, (e, i) => {
-
 		const wx = i % wd
 		const wy = Math.floor(i / wd)
 
@@ -57,10 +56,15 @@ function createFlowPoints_Wave(w, h) {
 		// console.log(i, { wx, wy }, { x, y })
 
 		const waves = [
-			Math.sin(x * .75),
-			Math.sin(x ^ y * .5)
-			// Math.sin((x / w * 2 * Math.PI) + (y / h * 2 * Math.PI)) * 0.3
+			// Math.sin(y / h * 2 * Math.PI),
+			Math.sin(x / w * 2 * Math.PI),
+			// Math.sin(x ^ y * .5),
+			// Math.sin(wx / wd * 2 * Math.PI)
+			// Math.cos(y / h) * 0.1
+			// Math.sin((x / w * 2 * Math.PI) + (y / h * 2 * Math.PI)) * 0.3,
 			// 1
+			// -Math.sin(x * .01 + y * 0.001),
+			// Math.tan(x * y) * 0.1
 		]
 		const angle = waves.reduce((acc, value) => acc + value, 0) / waves.length
 
@@ -77,12 +81,12 @@ function randomSandPoint(w, h) {
 	return {
 		x: Math.random() * w,
 		y: Math.random() * h,
-		age: Math.random() * 1000 + 100
+		age: Math.random() * 150 + 100
 	}
 }
 
 function createSandPoints(w, h) {
-	return Array.from({ length: 1000 }, () => randomSandPoint(w, h))
+	return Array.from({ length: 100 }, () => randomSandPoint(w, h))
 }
 
 function setup() {
@@ -92,7 +96,7 @@ function setup() {
 		colorSpace: 'display-p3'
 	})
 
-	context.imageSmoothingEnabled = false
+	context.imageSmoothingEnabled = true
 
 	context.fillStyle = 'black'
 	context.fillRect(0, 0, canvas.width, canvas.height)
@@ -112,13 +116,13 @@ function render(config, time) {
 	const { context, flowPoints, sand } = config
 
 	//
-	context.fillStyle = 'rgba(0, 0, 0, 0.01)'
+	context.fillStyle = 'rgba(0, 0, 0, 0.02)'
 	context.fillRect(0, 0, config.width, config.height)
 
 	//
-	if(false) {
+	if(true) {
 		context.lineWidth = 1
-		context.strokeStyle = 'rgb(100, 0, 100, .1)'
+		context.strokeStyle = 'rgb(200, 0, 100, .001)'
 		flowPoints.forEach(({ x, y, angle, intensity }) => {
 			context.save()
 			context.beginPath()
@@ -134,7 +138,7 @@ function render(config, time) {
 
 	//
 	sand.forEach(({ x, y, age }) => {
-		context.fillStyle = age > 15 ? 'pink' : 'red'
+		context.fillStyle = age > 50 ? 'rgba(80, 0, 75, 0.5)' : 'rgba(100, 10, 10, 0.5)'
 		context.fillRect(x, y, 1, 1)
 	})
 
@@ -179,12 +183,13 @@ function render(config, time) {
 	})
 
 	//
-	const a = (Math.random() * 2 - 1) * 0.5 * Math.PI / 180
+	const a = (Math.random() * 2 - 1) * 0.005
+	const c = Math.sin(((time % 30000) / 30000) * (2 * Math.PI)) * 0.005
 	config.flowPoints = flowPoints.map(fp => {
-		const b = (Math.random() * 2 - 1) * 2 * Math.PI / 180
+		const b = (Math.random() * 2 - 1) * 0.005
 		return {
 			...fp,
-			angle: fp.angle + a
+			angle: fp.angle
 		}
 	})
 }
