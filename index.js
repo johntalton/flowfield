@@ -1,3 +1,5 @@
+// import { goBind } from './booster/pkg/booster.js'
+
 function distance(p1, p2) {
 	return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2))
 }
@@ -10,10 +12,21 @@ function vectorFrom(angle) {
 	return { x: Math.cos(angle), y: Math.sin(angle) }
 }
 
+function scatter(fp) {
+	const xscatter = 50 * (Math.random() * 2 - 1)
+	const yscatter = 50 * (Math.random() * 2 - 1)
+
+	return {
+		...fp,
+		x: fp.x + xscatter,
+		y: fp.y + yscatter
+	}
+}
+
 function createFlowPoints(w, h) {
 	// return createFlowPoints_Fixed(w, h)
 	return createFlowPoints_Random(w, h)
-	// return createFlowPoints_Wave(w, h)
+	// return createFlowPoints_Wave(w, h).map(scatter)
 }
 
 function createFlowPoints_Fixed(w, h) {
@@ -33,7 +46,7 @@ function createFlowPoints_Fixed(w, h) {
 }
 
 function createFlowPoints_Random(w, h) {
-	const length = 50
+	const length = 150
 	return Array.from({ length }, (_e, i) => ({
 		x: Math.random() * w,
 		y: Math.random() * h,
@@ -58,7 +71,7 @@ function createFlowPoints_Wave(w, h) {
 		const waves = [
 			// Math.sin(y / h * 2 * Math.PI),
 			Math.sin(x / w * 2 * Math.PI),
-			// Math.sin(x ^ y * .5),
+			Math.sin(x ^ y * .5),
 			// Math.sin(wx / wd * 2 * Math.PI)
 			// Math.cos(y / h) * 0.1
 			// Math.sin((x / w * 2 * Math.PI) + (y / h * 2 * Math.PI)) * 0.3,
@@ -89,7 +102,21 @@ function createSandPoints(w, h) {
 	return Array.from({ length: 100 }, () => randomSandPoint(w, h))
 }
 
-function setup() {
+async function setup() {
+	// const mem = new WebAssembly.Memory({initial: 1})
+	// const module = await WebAssembly.compileStreaming(fetch('../booster/target/wasm32-unknown-unknown/release/booster.wasm'))
+	// const instance = await WebAssembly.instantiate(module, {
+	// 	env: {
+	// 		// logIt: (s) => console.log('here', s),
+	// 		// scratch: mem
+	// 	},
+	// 	// Math: { random: Math.random }
+	// })
+
+	// const ptr = instance.exports.sand(9)
+	// const memory = new Uint8Array(instance.exports.memory.buffer, ptr, 20)
+
+
 	const canvas = document.getElementById('canvas')
 	const context = canvas.getContext('2d', {
 		alpha: true,
@@ -103,48 +130,48 @@ function setup() {
 
 	console.log(context.getContextAttributes(), canvas.width, canvas.height, canvas.clientWidth, canvas.clientHeight)
 
+	if(false) {
+		const colors = [
+			'red', 'gree', 'blue', 'violet', 'cyan', 'pink', 'purple', 'white', 'black'
+		]
+		setInterval(() => {
+			canvas.style.setProperty('--color', colors[Math.floor(Math.random() * colors.length)])
+		}, 1000 * 15)
+	}
+
+	const foo = createSandPoints(canvas.width, canvas.height)
+		.filter((_, index) => index < 5)
+		.map(sp => [ sp.x, sp.y, sp.age, 0 ])
+		.flat()
+		.map(Math.floor)
+		//.map(ary => Uint16Array.from(ary))
+
+	// memory.set(foo)
+	// console.log(...memory)
+
+	// setInterval(() => {
+	// 	instance.exports.stepSand(false)
+	// 	console.log(...memory)
+	// }, 1000 * 4)
+
+
+
+
 	return {
 		height: canvas.height,
 		width: canvas.width,
 		context,
+		canvas,
 		flowPoints: createFlowPoints(canvas.width, canvas.height),
-		sand: createSandPoints(canvas.width, canvas.height)
+		sand: createSandPoints(canvas.width, canvas.height),
+		// booster: instance
 	}
 }
 
-function render(config, time) {
-	const { context, flowPoints, sand } = config
-
-	//
-	context.fillStyle = 'rgba(0, 0, 0, 0.02)'
-	context.fillRect(0, 0, config.width, config.height)
-
-	//
-	if(true) {
-		context.lineWidth = 1
-		context.strokeStyle = 'rgb(200, 0, 100, .001)'
-		flowPoints.forEach(({ x, y, angle, intensity }) => {
-			context.save()
-			context.beginPath()
-			context.translate(x, y);
-			context.rotate(angle);
-			context.moveTo(0, 0)
-			context.lineTo(intensity * 150, 0)
-			context.stroke()
-			context.resetTransform()
-			context.restore()
-		})
-	}
-
-	//
-	sand.forEach(({ x, y, age }) => {
-		context.fillStyle = age > 50 ? 'rgba(80, 0, 75, 0.5)' : 'rgba(100, 10, 10, 0.5)'
-		context.fillRect(x, y, 1, 1)
-	})
-
+function update(config, time) {
 	//
 	config.sand = config.sand.map(p => {
-		const temp = flowPoints.map(fp => ({
+		const temp = config.flowPoints.map(fp => ({
 				fp, d: distance(fp, p)
 			}))
 		temp.sort(({ d: ad }, { d: bd }) => ad - bd)
@@ -183,15 +210,60 @@ function render(config, time) {
 	})
 
 	//
-	const a = (Math.random() * 2 - 1) * 0.005
-	const c = Math.sin(((time % 30000) / 30000) * (2 * Math.PI)) * 0.005
-	config.flowPoints = flowPoints.map(fp => {
-		const b = (Math.random() * 2 - 1) * 0.005
-		return {
-			...fp,
-			angle: fp.angle
-		}
+	if(true) {
+		const a = (Math.random() * 2 - 1) * 0.005
+		const c = Math.sin(((time % 30000) / 30000) * (2 * Math.PI)) * 0.005
+		config.flowPoints = config.flowPoints.map(fp => {
+			const b = (Math.random() * 2 - 1) * 0.005
+			const d = Math.random() * 0.05
+			return {
+				...fp,
+				angle: fp.angle + a
+			}
+		})
+	}
+}
+
+function render(config, time) {
+	const { context, flowPoints, sand } = config
+
+	const styles = getComputedStyle(config.canvas)
+	const colors = {
+		debug: styles.getPropertyValue('--debug-color'),
+		color: styles.getPropertyValue('--color'),
+		other: styles.getPropertyValue('--other-color')
+	}
+
+	//
+	if(false) {
+		context.fillStyle = 'rgba(40, 0, 35, 0.01)'
+		context.fillRect(0, 0, config.width, config.height)
+	}
+
+	//
+	if(false) {
+		context.lineWidth = 1
+		context.strokeStyle = colors.debug
+		flowPoints.forEach(({ x, y, angle, intensity }) => {
+			context.save()
+			context.beginPath()
+			context.translate(x, y);
+			context.rotate(angle);
+			context.moveTo(0, 0)
+			context.lineTo(intensity * 150, 0)
+			context.stroke()
+			context.resetTransform()
+			context.restore()
+		})
+	}
+
+	//
+	sand.forEach(({ x, y, age }) => {
+		context.fillStyle = age > 50 ? colors.color : colors.other
+		context.fillRect(x, y, 1, 1)
 	})
+
+	update(config, time)
 }
 
 function makeRenderOverConfig(config) {
@@ -206,7 +278,7 @@ function makeRenderOverConfig(config) {
 }
 
 async function onContentLoaded() {
-	const config = setup()
+	const config = await setup()
 	requestAnimationFrame(makeRenderOverConfig(config))
 }
 
