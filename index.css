@@ -213,6 +213,43 @@
 		justify-content: center;
 		align-items: start;
 		justify-items: center;
+
+		overflow: none;;
+	}
+
+	h1 {
+		display: flex;
+		flex-direction: row;
+
+		position: absolute;
+		left: 1ch;
+		top: 1em;
+		font-size: 2em;
+
+		padding-inline: 2ch;
+		padding-block: .5em;
+
+		background-color: rgb(1 1 1 / .5);
+		color: whitesmoke;
+
+		border-radius: 0.25em;
+
+		transition: top 1s ease-in-out;
+
+		& > span {
+			color: greenyellow;
+			display: block;
+			scale: 7;
+			translate: 1ch -1em;
+			padding-inline-end: .25ch;
+		}
+	}
+
+	h1[data-show],
+	h1:has(~ nav:not([data-close])),
+	h1:has(~ section[data-active]),
+	body:focus-within > h1 {
+		top: -100%;
 	}
 
 	nav {
@@ -250,25 +287,61 @@
 			padding-inline: 2ch;
 			padding-block: 0.75em;
 			background-color: var(--nav-li-bg);
-			/* background-image: radial-gradient(circle at 0, var(--nav-li-bg), white); */
-
-			/* &:first-of-type{
-				border-block-start: 1px solid black;
-			} */
 		}
 
 	}
 
+	@keyframes fadeIn {
+		0% {
+			display: none;
+			opacity: 0;
+		}
+		1% {
+			display: flex;
+		}
+		100% {
+			display: flex;
+			opacity: 1;
+		}
+	}
+
+	@keyframes fadeOut {
+		0% {
+			display: flex;
+			opacity: 1;
+		}
+		99% {
+			display: flex;
+		}
+		100% {
+			display: none;
+			opacity: 0;
+		}
+	}
+
+	body::focus-within > section:not([data-active]) > button[data-burger] {
+		top: -5em;
+	}
+
 	section:not([data-active]) {
-		display: none;
+		background-color: initial;
+		border: none;
+		box-shadow: none;
+
+		& > *:not([data-burger]) {
+			animation: fadeOut .5s ease-out forwards;
+		}
+
+		& > button[data-burger] {
+			animation: fadeIn 0.5s ease-out forwards;
+		}
 	}
 
 	section {
 		grid-area: body;
 		display: flex;
-
-		display: flex;
 		flex-direction: column;
+
 
 		max-height: calc(100% - 1em);
 		min-width: min(75%, 1024px);
@@ -288,6 +361,19 @@
 			margin-inline: 1ch;
 		}
 
+		& > button[data-burger] {
+			width: fit-content;
+			position: absolute;
+			top: auto;
+			right: 1em;
+			transition: top 5ms;
+			animation: fadeOut 1ms ease-out forwards;
+		}
+
+
+		& > *:not([data-burger]) {
+			animation: fadeIn .5s ease-out forwards;
+		}
 	}
 
 	/* @supports (rgb(from white r g b)) {
@@ -368,7 +454,11 @@
 	}
 
 	canvas {
-		--color: blue;
+		--color: rgba(97, 8, 126, 40%);
+		--other-color: rgb(255 15 240 / 40%);
+
+		--color: rgb(255 255 255 / .25);
+		--other-color: black;
 	}
 
 	form {

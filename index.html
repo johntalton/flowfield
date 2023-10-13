@@ -11,15 +11,17 @@
 		<link rel="stylesheet" type="text/css" href="index.css"></link>
 	</head>
 	<body data-dark>
-		<nav>
+		<h1><span>∿</span>Flow Field</h1>
+		<nav data-close>
 			<header>📁 Items</header>
 			<li>First</li>
 			<li>Second</li>
 			<li>third</li>
 		</nav>
 		<canvas id="canvas" width="1600" height="900"></canvas>
-		<section data-active>
-			<header>Flow Field</header>
+		<section>
+			<button data-burger onclick="event.target.closest('section').toggleAttribute('data-active')">⏏︎</button>
+			<header>Config</header>
 			<form method="dialog">
 				<label for="">Range</label>
 				<input type="range" id="" name="" min="0" max="11" />

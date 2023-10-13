@@ -12,9 +12,18 @@ function vectorFrom(angle) {
 	return { x: Math.cos(angle), y: Math.sin(angle) }
 }
 
-function scatter(fp) {
-	const xscatter = 50 * (Math.random() * 2 - 1)
-	const yscatter = 50 * (Math.random() * 2 - 1)
+function angleFrom(p1, p2) {
+	const rise = p1.y - p2.y
+	const run = p1.x - p2.x
+	const slope = rise / run
+
+	// console.log(rise, run, slope)
+	return Math.atan(slope)
+}
+
+function scatterXY(fp, dx, dy) {
+	const xscatter = dx * (Math.random() * 2 - 1)
+	const yscatter = dy * (Math.random() * 2 - 1)
 
 	return {
 		...fp,
@@ -23,10 +32,13 @@ function scatter(fp) {
 	}
 }
 
+const scatter = fp => scatterXY(fp, 25, 25)
+
 function createFlowPoints(w, h) {
 	// return createFlowPoints_Fixed(w, h)
-	return createFlowPoints_Random(w, h)
-	// return createFlowPoints_Wave(w, h).map(scatter)
+	// return createFlowPoints_Random(w, h)
+	return createFlowPoints_Wave(w, h)
+		.map(scatter)
 }
 
 function createFlowPoints_Fixed(w, h) {
@@ -59,6 +71,7 @@ function createFlowPoints_Wave(w, h) {
 	const hd = 20
 	const wd = 40
 
+
 	return Array.from({ length: wd * hd }, (e, i) => {
 		const wx = i % wd
 		const wy = Math.floor(i / wd)
@@ -67,17 +80,25 @@ function createFlowPoints_Wave(w, h) {
 		const y = wy / hd * h
 
 		// console.log(i, { wx, wy }, { x, y })
+		// console.log(angleFrom({ x, y}, { x: 0, y: 0 }))
 
 		const waves = [
-			// Math.sin(y / h * 2 * Math.PI),
-			Math.sin(x / w * 2 * Math.PI),
-			Math.sin(x ^ y * .5),
-			// Math.sin(wx / wd * 2 * Math.PI)
+			// x % 100
+			angleFrom({ x, y }, { x: 1000, y: 500 }) * 2,
+			Math.sin(y / h * 2 * Math.PI),
+			// Math.sin(x / w * 2 * Math.PI),
+			// Math.sin(x ^ y * .5),
+			// Math.sin(wx / wd * 2 * Math.PI),
 			// Math.cos(y / h) * 0.1
 			// Math.sin((x / w * 2 * Math.PI) + (y / h * 2 * Math.PI)) * 0.3,
 			// 1
 			// -Math.sin(x * .01 + y * 0.001),
-			// Math.tan(x * y) * 0.1
+			Math.tan(x * y) * 0.5,
+			// Math.sin(x & y),
+			// Math.tan(y) * .125
+			// Math.pow(Math.sqrt(x) + Math.sqrt(y), 2)
+			// Math.sin(distance({ x, y }, { x: 0, y: 0 }) * 0.1)
+			// vectorFrom(Math.sin(x)).x
 		]
 		const angle = waves.reduce((acc, value) => acc + value, 0) / waves.length
 
@@ -94,7 +115,7 @@ function randomSandPoint(w, h) {
 	return {
 		x: Math.random() * w,
 		y: Math.random() * h,
-		age: Math.random() * 150 + 100
+		age: Math.random() * 100 + 50
 	}
 }
 
@@ -154,6 +175,35 @@ async function setup() {
 	// 	console.log(...memory)
 	// }, 1000 * 4)
 
+
+
+	if(false) {
+		const TIME_S = 1000 * 7
+		let lastTime = -Infinity
+
+		window.addEventListener('mousemove', e => {
+			const { timeStamp } = e
+			console.log('check')
+
+			if(timeStamp - lastTime < TIME_S) { return }
+			lastTime = timeStamp
+
+			const body = document.querySelector('body')
+			body.toggleAttribute('data-user-inactive', false)
+		})
+
+		const timer = setInterval(() => {
+			const delta = performance.now() - lastTime
+
+			if(delta < TIME_S) { return }
+
+			lastTime = -Infinity
+
+			const body = document.querySelector('body')
+			body.toggleAttribute('data-user-inactive', true)
+
+		}, TIME_S / 2)
+	}
 
 
 
@@ -235,8 +285,13 @@ function render(config, time) {
 	}
 
 	//
-	if(false) {
-		context.fillStyle = 'rgba(40, 0, 35, 0.01)'
+	if(true) {
+		const gradient = context.createLinearGradient(0, 0, config.width, config.height / 2)
+		gradient.addColorStop(0, 'rgb(0 30 50 / .01)')
+		gradient.addColorStop(.25, 'rgb(50 0 0 / .01)')
+		gradient.addColorStop(1, 'rgb(50 40 0 / .01)')
+		// context.fillStyle = 'rgba(40, 0, 35, 0.01)'
+		context.fillStyle = gradient
 		context.fillRect(0, 0, config.width, config.height)
 	}
 
@@ -250,7 +305,7 @@ function render(config, time) {
 			context.translate(x, y);
 			context.rotate(angle);
 			context.moveTo(0, 0)
-			context.lineTo(intensity * 150, 0)
+			context.lineTo(intensity * 50, 0)
 			context.stroke()
 			context.resetTransform()
 			context.restore()
