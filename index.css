@@ -342,7 +342,6 @@
 		display: flex;
 		flex-direction: column;
 
-
 		max-height: calc(100% - 1em);
 		min-width: min(75%, 1024px);
 		margin-block-start: 1em;
@@ -372,7 +371,7 @@
 
 
 		& > *:not([data-burger]) {
-			animation: fadeIn .5s ease-out forwards;
+			/* animation: fadeIn .5s ease-out forwards; */
 		}
 	}
 
