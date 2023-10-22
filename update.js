@@ -47,11 +47,11 @@ export function update(config, time) {
 
 	//
 	if(true) {
-		const a = (Math.random() * 2 - 1) * 0.005
-		const c = Math.sin(((time % 30000) / 30000) * (2 * Math.PI)) * 0.005
+		const a = (Math.random() * 2 - 1) * 0.0125
+		// const c = Math.sin(((time % 30000) / 30000) * (2 * Math.PI)) * 0.005
 		config.flowPoints = config.flowPoints.map(fp => {
-			const b = (Math.random() * 2 - 1) * 0.005
-			const d = Math.random() * 0.05
+			// const b = (Math.random() * 2 - 1) * 0.005
+			// const d = Math.random() * 0.05
 			return {
 				...fp,
 				angle: fp.angle + a

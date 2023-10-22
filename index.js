@@ -16,9 +16,9 @@ const scatter = fp => scatterXY(fp, 25, 25)
 function createFlowPoints(w, h) {
 	// return createFlowPoints_River(w, h)
 	// return createFlowPoints_Fixed(w, h)
-	// return createFlowPoints_Random(w, h)
-	return createFlowPoints_Wave(w, h)
-		.map(scatter)
+	return createFlowPoints_Random(w, h)
+	// return createFlowPoints_Wave(w, h)
+	// 	.map(scatter)
 }
 
 function createFlowPoints_River(w, h) {
@@ -222,13 +222,17 @@ function render(config, time) {
 	}
 
 	//
-	if(false) {
+	if(true) {
+		context.globalCompositeOperation = 'lighten'
+
 		const gradient = context.createLinearGradient(0, 0, config.width, config.height)
-		gradient.addColorStop(0, 'rgb(10 40 60 / .1)')
-		gradient.addColorStop(.25, 'rgb(50 0 0 / .1)')
+		gradient.addColorStop(0, 'rgb(10 40 60 / 1)')
+		gradient.addColorStop(.25, 'rgb(50 0 0 / 1)')
 		gradient.addColorStop(1, 'rgb(50 40 0 / .1)')
 		context.fillStyle = gradient
 		context.fillRect(0, 0, config.width, config.height)
+
+		context.globalCompositeOperation = 'normal'
 	}
 
 	//
@@ -286,11 +290,11 @@ async function onContentLoaded() {
 		handleWorkerMessage(config, data, port)
 	}
 
-worker.postMessage({ config: {
-	...config,
-	context: undefined,
-	canvas: undefined
-}})
+	worker.postMessage({ config: {
+		...config,
+		context: undefined,
+		canvas: undefined
+	}})
 
 	requestAnimationFrame(makeRenderOverConfig(config))
 }

@@ -24,6 +24,6 @@ export function randomSandPoint(w, h) {
 	return {
 		x: Math.random() * w,
 		y: Math.random() * h,
-		age: Math.random() * 100 + 50
+		age: Math.random() * 50 + 50
 	}
 }

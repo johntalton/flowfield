@@ -17,17 +17,33 @@ import { update } from './update.js'
 //   1, 2, 3, 4, 5, 6, 7, 8, 9, 10
 // ]))
 
+const avgDuration = {
+  sum: 0,
+  count: 0
+}
+
 function perfObserver(list, observer) {
   list.getEntries().forEach(entry => {
     switch(entry.entryType) {
       // case 'mark': console.log('>>>', entry.name, entry.startTime); break
-      case 'measure': console.log('>>>', entry.name, entry.duration); break
+      case 'measure': {
+        const { name, duration } = entry
+
+        if(name !== 'loop'){ break }
+
+        avgDuration.sum += duration
+        avgDuration.count += 1
+      } break
     }
   })
 }
 
 const observer = new PerformanceObserver(perfObserver)
 observer.observe({ entryTypes: ['measure', 'mark']})
+setInterval(() => {
+  console.log('avg time', Math.round(avgDuration.sum / avgDuration.count))
+}, 1000 * 5)
+
 
 
 export let config = {}
