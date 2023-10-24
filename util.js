@@ -1,3 +1,10 @@
+export function lerp(t, a, b) {
+	return t * (b - a) + a
+}
+
+export function mapRange(v, a, b, c, d) {
+	return lerp((v - a) / (b - a), c, d)
+}
 
 export function distance(p1, p2) {
 	return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2))
@@ -24,6 +31,6 @@ export function randomSandPoint(w, h) {
 	return {
 		x: Math.random() * w,
 		y: Math.random() * h,
-		age: Math.random() * 50 + 50
+		age: Math.floor(Math.random() * 2000) + 1000
 	}
 }

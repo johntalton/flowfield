@@ -22,7 +22,10 @@
 		<section>
 			<button data-burger onclick="event.target.closest('section').toggleAttribute('data-active')">⏏︎</button>
 			<header>Config</header>
-			<form method="dialog">
+			<form method="dialog" onchange="handleForm(event)">
+				<label for="sourcePicker">Source</label>
+				<input id="sourcePicker" name="sourcePicker" type="file" accept="image/*" />
+
 				<label for="">Range</label>
 				<input type="range" id="" name="" min="0" max="11" />
 
@@ -46,8 +49,7 @@
 				<input type="number" id="" name="" />
 
 				<div data-button-set>
-					<button disabled onclick="console.log(event)">Try</button>
-					<button onclick="event.target.closest('section').toggleAttribute('data-active', false)">Cancel</button>
+					<button onclick="event.target.closest('section').toggleAttribute('data-active', false)">Close</button>
 				</div>
 			</form>
 		</section>

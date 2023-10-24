@@ -52,12 +52,17 @@ async function loopForever(options) {
   const { signal } = options
 
   const loopBody = () => {
+    // console.log('loopBody')
     const ls = performance.mark('loop-start')
-    if(config.sand === undefined) { return }
+    if(config.sand === undefined) { return setTimeout(loopBody, 1000) }
 
-    update(config)
+    try {
+      update(config)
+      postMessage({ sand: config.sand })
+    }
+    catch(e) { console.warn(e) }
 
-    postMessage({ sand: config.sand })
+
 
     // if(signal.aborted) { return }
     setTimeout(loopBody, 0)

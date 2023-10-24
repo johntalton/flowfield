@@ -459,8 +459,8 @@
 		/* --color: rgb(255 255 255 / .25);
 		--other-color: black; */
 
-		--color: rgba(19, 192, 255, 1);
-		--other-color: rgba(213, 216, 30, 1);
+		--color: rgba(103, 3, 0, 1);
+		--other-color: rgba(213, 200, 30, 0.5);
 	}
 
 	form {
