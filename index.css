@@ -213,8 +213,6 @@
 		justify-content: center;
 		align-items: start;
 		justify-items: center;
-
-		overflow: none;;
 	}
 
 	h1 {
@@ -385,8 +383,11 @@
 
 	canvas {
 		--debug-color: red;
-		--other-color: magenta;
-		--color: white;
+		/* --other-color: magenta; */
+		/* --color: white; */
+		--other-color: rgb(4 147 200 / 60%);
+    --color: rgb(84 119 25 / 30%);
+
 
 		grid-area: 1 / 1 / -1 / -1;
 
@@ -456,11 +457,14 @@
 		--color: rgba(97, 8, 126, 40%);
 		--other-color: rgb(255 15 240 / 40%);
 
-		/* --color: rgb(255 255 255 / .25);
-		--other-color: black; */
+		/* --color: rgb(255 255 255 / .25); */
+		/* --other-color: black;  */
 
-		--color: rgba(103, 3, 0, 1);
-		--other-color: rgba(213, 200, 30, 0.5);
+		/* --color: rgba(103, 3, 0, 1); */
+		/* --other-color: rgba(213, 200, 30, 0.5); */
+
+		--color: rgb(156 66 194 / 10%);
+    --other-color: rgb(0 255 254 / 15%);
 	}
 
 	form {

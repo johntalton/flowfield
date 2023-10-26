@@ -48,7 +48,7 @@ export function update(config, time) {
 
 			if(d === 0) { return acc}
 
-			const factor = 1 / (d * d * d) * item.intensity * item.intensity * item.intensity
+			const factor = 1 / (d * d * d) * Math.pow(item.intensity, 3)
 
 			if(factor !== 0) {
 				acc.x += (vec.x * factor)

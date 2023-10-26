@@ -1,4 +1,4 @@
-import { randomSandPoint, angleFrom, distance, vectorFrom, mapRange } from './util.js'
+import { randomSandPoint, range, angleFrom, distance, vectorFrom, mapRange } from './util.js'
 
 
 function scatterXY(fp, dx, dy) {
@@ -16,11 +16,71 @@ const scatter = fp => scatterXY(fp, 25, 25)
 
 function createFlowPoints(w, h) {
 	// return []
+	return createFlowPoints_Pendulum(w, h)
 	// return createFlowPoints_River(w, h)
 	// return createFlowPoints_Fixed(w, h)
-	return createFlowPoints_Random(w, h)
+	// return createFlowPoints_Random(w, h)
 	// return createFlowPoints_Wave(w, h)
 		// .map(scatter)
+}
+
+function createFlowPoints_Pendulum(w, h) {
+	function calcThetaDotDot(theta, theta_dot) {
+		// 3Blue1Brown
+
+		const g = 9.8
+		const L = 4
+		const mu = 0.6
+
+		// definition of ODE
+		return (-mu * theta_dot) - (g / L) * Math.sin(theta)
+	}
+
+	function calcTheta(theta, theta_dot, t = 1) {
+		// solution to the differential equation
+		const delta_t = 0.01
+
+		for(let _ of range(0, t, delta_t)) {
+			const thetaDD = thetaDotDot(theta, theta_dot)
+			theta +=  theta_dot * delta_t
+			theta_dot += thetaDD * delta_t
+		}
+
+		return theta
+	}
+
+	const fieldHeight = 20
+	const fieldWidth = 30
+
+	return Array.from({ length: fieldWidth * fieldHeight }, (e, fieldIndex) => {
+		// field x,y
+		const fieldX = fieldIndex % fieldWidth
+		const fieldY = Math.floor(fieldIndex / fieldWidth)
+
+		// canvas x,y
+		const x = Math.round(fieldX / fieldWidth * w + w / fieldWidth / 2)
+		const y = Math.round(fieldY / fieldHeight * h)
+
+		//
+		const theta = mapRange(fieldX, 0, fieldWidth, -2 * Math.PI, 2 * Math.PI)
+		const thetaDot = mapRange(fieldY, 0, fieldHeight, 5, -5)
+
+		//
+		const thetaDotDot = calcThetaDotDot(theta, thetaDot)
+		const nextTheta = theta + thetaDot * 0.01
+		const nextThetaDot = thetaDot + thetaDotDot * 0.01
+
+		//
+		const dTheta = nextTheta - theta
+		const dThetaDot = nextThetaDot - thetaDot
+		const angle = -Math.atan2(dThetaDot, dTheta)
+
+		const intensity =  Math.sqrt(dTheta * dTheta + dThetaDot * dThetaDot)
+
+		return {
+			x, y, angle, intensity
+		}
+	})
 }
 
 function createFlowPoints_River(w, h) {
@@ -145,7 +205,7 @@ function createFlowPoints_Wave(w, h) {
 }
 
 function createSandPoints(w, h) {
-	return Array.from({ length: 500 }, () => randomSandPoint(w, h))
+	return Array.from({ length: 1000 }, () => randomSandPoint(w, h))
 }
 
 async function setup() {
@@ -155,8 +215,6 @@ async function setup() {
 		alpha: true,
 		colorSpace: 'display-p3'
 	})
-
-	context.imageSmoothingEnabled = true
 
 	context.fillStyle = 'black'
 	context.fillRect(0, 0, canvas.width, canvas.height)
@@ -216,7 +274,9 @@ async function setup() {
 		canvas,
 		flowPoints: createFlowPoints(canvas.width, canvas.height),
 		sand: createSandPoints(canvas.width, canvas.height),
-		// booster: instance
+		last: new Map(),
+		// booster: instance,
+		paused: true
 	}
 }
 
@@ -230,33 +290,36 @@ function render(config, time) {
 		other: styles.getPropertyValue('--other-color')
 	}
 
+	// context.clearRect(0, 0, config.width, config.height)
+
 	//
 	if(false) {
-		context.globalCompositeOperation = 'darken'
-
-		// const gradient = context.createLinearGradient(0, 0, config.width, config.height)
-		// gradient.addColorStop(0, 'rgb(10 40 60 / 1)')
-		// gradient.addColorStop(.25, 'rgb(50 0 0 / 1)')
-		// gradient.addColorStop(1, 'rgb(50 40 0 / .1)')
-		// context.fillStyle = gradient
-		context.fillStyle = 'rgba(0 0 0 / .5)'
+		context.globalCompositeOperation = 'lighten'
+		context.fillStyle = 'rgba(0 0 0 / .01)'
 		// context.fillStyle = 'black'
 		context.fillRect(0, 0, config.width, config.height)
-
 		context.globalCompositeOperation = 'normal'
 	}
 
 	//
 	if(config.debug === true) {
 		context.lineWidth = 1
-		context.strokeStyle = colors.debug
+		// context.strokeStyle = colors.debug
 		flowPoints.forEach(({ x, y, angle, intensity }) => {
+			const h = mapRange(intensity, 0, 1, 0, 360)
+			const len = mapRange(intensity, 0, 1, 5, 300)
+
+			context.fillStyle =`hsl(${h} 50% 50%)`
+			context.fillRect(x -5, y - 5, 10, 10)
+
 			context.save()
+			context.strokeStyle =`hsl(${h} 50% 50%)`
+			context.lineWidth = 5
 			context.beginPath()
 			context.translate(x, y);
 			context.rotate(angle);
 			context.moveTo(0, 0)
-			context.lineTo(intensity * 50, 0)
+			context.lineTo(len, 0)
 			context.stroke()
 			context.resetTransform()
 			context.restore()
@@ -264,15 +327,40 @@ function render(config, time) {
 	}
 
 	//
-	// console.log(sand)
-	sand.forEach(({ x, y, age }) => {
-		context.fillStyle = age > 1000 ? colors.color : colors.other
-		if(age > 2400) {
-			context.fillStyle = 'black'
+	context.globalCompositeOperation = 'lighten'
 
+	sand.forEach(({ x, y, age }, i) => {
+		const last = config.last.has(i) ? config.last.get(i) : { x, y }
+		config.last.set(i, { x, y })
+
+		const dx = Math.abs(x - last.x)
+		const dy = Math.abs(y - last.y)
+
+		context.strokeStyle = age > 100 ? colors.color : colors.other
+		if(age > 2400) {
+			context.strokeStyle = 'red'
 		}
-		context.fillRect(x, y, 2, 2)
+
+		if(dx < .1 && dy < .1) { return }
+
+		if(dx < .5 && dy < .5) {
+			// context.strokeStyle = 'white'
+			context.strokeRect(x, y, 1, 1)
+		}
+		else {
+			// context.strokeStyle = 'yellow'
+			if(dx > 10 || dy > 10) { return }
+
+			context.lineWidth = 1
+
+			context.beginPath()
+			context.moveTo(last.x, last.y)
+			context.lineTo(x, y)
+			context.stroke()
+		}
 	})
+
+	context.globalCompositeOperation = 'normal'
 
 	if(false) {
 		context.fillStyle = 'rgba(0 0 0 / .125)'
@@ -281,9 +369,6 @@ function render(config, time) {
 		context.textBaseline = 'middle'
 		context.fillText('FlowField', config.width / 2, config.height / 2, config.width)
 	}
-
-
-	//update(config, time)
 }
 
 function makeRenderOverConfig(config) {
@@ -299,7 +384,13 @@ function makeRenderOverConfig(config) {
 
 function handleWorkerMessage(config, data) {
 	// console.log('message from worker', data)
+
 	config.sand = data.sand
+
+	if(config.paused === true) {
+		requestAnimationFrame(makeRenderOverConfig(config))
+		config.paused = false
+	}
 }
 
 function createFlowPoints_Image(w, h, imageData) {
@@ -486,7 +577,7 @@ async function onContentLoaded() {
 		worker: undefined
 	}})
 
-	requestAnimationFrame(makeRenderOverConfig(config))
+	// requestAnimationFrame(makeRenderOverConfig(config))
 }
 
 const syncOnContentLoaded = () => {
