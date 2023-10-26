@@ -28,8 +28,13 @@ export function update(config, time) {
 		// 	y: nextVec.y * scale
 		// }
 
-		// const x = Math.max(10, Math.min(p.x + vec.x + nextVecScaled.x, config.width - 10))
-		// const y = Math.max(10, Math.min(p.y + vec.y + nextVecScaled.y, config.height - 10))
+		// p.x = Math.max(10, Math.min(p.x + vec.x + nextVecScaled.x, config.width - 10))
+		// p.y = Math.max(10, Math.min(p.y + vec.y + nextVecScaled.y, config.height - 10))
+		// return
+
+
+
+
 
 		const sumVec = config.flowPoints.reduce((acc, item) => {
 			const d = distance(item, p)
@@ -61,31 +66,27 @@ export function update(config, time) {
 
 		}, { x: 0, y: 0 })
 
-
 		if(Number.isNaN(sumVec.x)) { throw new Error('svx') }
 		if(Number.isNaN(sumVec.y)) { throw new Error('svy') }
 
 		const mag = Math.sqrt(sumVec.x * sumVec.x + sumVec.y * sumVec.y)
-		if(mag > 0) {
-			sumVec.x /= mag
-			sumVec.y /= mag
-		}
+		if(mag <= 0) { return p }
 
-		// console.log(sumVec)
+		sumVec.x /= mag
+		sumVec.y /= mag
 
-		p.x += Math.min(sumVec.x, 10)
-		p.y += Math.min(sumVec.y, 10)
+		// capping max move size
+		p.x += Math.min(sumVec.x, Number.POSITIVE_INFINITY)
+		p.y += Math.min(sumVec.y, Number.POSITIVE_INFINITY)
 
+		// bounds checking to create padding
 		p.x = Math.max(10, Math.min(p.x, config.width - 10))
 		p.y = Math.max(10, Math.min(p.y, config.height - 10))
 
 		if(Number.isNaN(p.x)) { throw new Error('px a') }
 		if(Number.isNaN(p.y)) { throw new Error('py a') }
 
-		// console.log(p)
-
 		return p
-		// return { ...p, x, y }
 	})
 
 	//

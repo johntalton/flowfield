@@ -29,7 +29,7 @@ function createFlowPoints_Pendulum(w, h) {
 		// 3Blue1Brown
 
 		const g = 9.8
-		const L = 4
+		const L = 3
 		const mu = 0.6
 
 		// definition of ODE
@@ -49,8 +49,8 @@ function createFlowPoints_Pendulum(w, h) {
 		return theta
 	}
 
-	const fieldHeight = 20
-	const fieldWidth = 30
+	const fieldHeight = 9
+	const fieldWidth = 16
 
 	return Array.from({ length: fieldWidth * fieldHeight }, (e, fieldIndex) => {
 		// field x,y
@@ -59,7 +59,7 @@ function createFlowPoints_Pendulum(w, h) {
 
 		// canvas x,y
 		const x = Math.round(fieldX / fieldWidth * w + w / fieldWidth / 2)
-		const y = Math.round(fieldY / fieldHeight * h)
+		const y = Math.round(fieldY / fieldHeight * h + h / fieldHeight / 2)
 
 		//
 		const theta = mapRange(fieldX, 0, fieldWidth, -2 * Math.PI, 2 * Math.PI)
@@ -216,8 +216,8 @@ async function setup() {
 		colorSpace: 'display-p3'
 	})
 
-	context.fillStyle = 'black'
-	context.fillRect(0, 0, canvas.width, canvas.height)
+	// context.fillStyle = 'black'
+	// context.fillRect(0, 0, canvas.width, canvas.height)
 
 	// console.log(context.getContextAttributes(), canvas.width, canvas.height, canvas.clientWidth, canvas.clientHeight)
 
